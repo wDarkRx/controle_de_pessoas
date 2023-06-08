@@ -4,6 +4,9 @@ const alunoInput = document.querySelector("#formulario-submit-input");
 const alunoList = document.querySelector("#aluno-list");
 const alunosCount = document.querySelector("#alunos-count");
 const checkboxes = document.querySelectorAll('input[name="membro"]');
+const chartCanvas = document.querySelector("#chart");
+
+let chart;
 
 // Funções
 const saveAluno = (text, membros) => {
@@ -29,6 +32,7 @@ const saveAluno = (text, membros) => {
   alunoInput.focus();
 
   updateAlunosCount();
+  updateChart();
 };
 
 const updateAlunosCount = () => {
@@ -42,6 +46,63 @@ const desmarcarCheckbox = () => {
   });
 };
 
+const updateChart = () => {
+  const alunos = alunoList.children;
+  const musculosCount = {};
+
+  // Contar a quantidade de cada músculo selecionado
+  for (let i = 0; i < alunos.length; i++) {
+    const aluno = alunos[i];
+    const membrosText = aluno.querySelector("p").innerText;
+    const membros = membrosText.substring(9).split(", ");
+
+    for (let j = 0; j < membros.length; j++) {
+      const membro = membros[j];
+      if (musculosCount[membro]) {
+        musculosCount[membro]++;
+      } else {
+        musculosCount[membro] = 1;
+      }
+    }
+  }
+
+  // Atualizar os dados do gráfico de pizza
+  const musculos = Object.keys(musculosCount);
+  const countData = musculos.map((membro) => musculosCount[membro]);
+
+  if (chart) {
+    chart.data.labels = musculos;
+    chart.data.datasets[0].data = countData;
+    chart.update();
+  } else {
+    const ctx = chartCanvas.getContext("2d");
+    chart = new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: musculos,
+        datasets: [
+          {
+            data: countData,
+            backgroundColor: [
+              "#FF6384",
+              "#36A2EB",
+              "#FFCE56",
+              "#8d5ad1",
+              "#3cba9f",
+              "#e8c3b9",
+              "#c45850"
+            ],
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+      },
+    });
+  }
+};
+
 // Eventos
 alunoForm.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -49,9 +110,9 @@ alunoForm.addEventListener("submit", (e) => {
   const valorInput = alunoInput.value;
 
   if (valorInput) {
-    const membrosSelecionados = Array.from(document.querySelectorAll('input[name="membro"]:checked')).map(
-      (checkbox) => checkbox.value
-    );
+    const membrosSelecionados = Array.from(
+      document.querySelectorAll('input[name="membro"]:checked')
+    ).map((checkbox) => checkbox.value);
     if (membrosSelecionados.length === 0) {
       alert("Selecione pelo menos um grupo muscular");
       return;
@@ -68,7 +129,9 @@ document.addEventListener("click", (e) => {
   if (elementoPai && elementoAlvo.classList.contains("remove-aluno")) {
     elementoPai.remove();
     updateAlunosCount();
+    updateChart();
   }
 });
 
 updateAlunosCount();
+updateChart();
