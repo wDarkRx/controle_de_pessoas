@@ -101,3 +101,8 @@ select {
 .aluno button {
   margin-left: 0.5rem;
 }
+
+#chart {
+  width: 50%;
+  height: auto;
+}
